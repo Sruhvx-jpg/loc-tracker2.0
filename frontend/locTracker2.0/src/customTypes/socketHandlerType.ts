@@ -1,0 +1,1 @@
+export type SocketHandler<T = unknown> = (data: T) => void;
