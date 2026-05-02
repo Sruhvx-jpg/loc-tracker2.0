@@ -6,7 +6,8 @@ import { initProducer, sendLocData } from "./src/kafka/kafka-producer.ts"
 import { ConsumeData, initConsumer } from "./src/kafka/kafka-consumer.ts"
 import { fileURLToPath } from "url"
 import { publisher, subscriber } from "./src/utils/redis-connection.ts"
-import { Partitioners } from "kafkajs"
+import { initValKeySubscriber } from "./src/valkey/initSubscriber.ts"
+
 
 const main = async () => {
     const app = express()
@@ -30,17 +31,8 @@ const main = async () => {
         console.error('[Redis] Failed to subscribe:', error)
     }
 
-    subscriber.on('message', (channel, message) => {
-        if (channel === 'location-updates') {
-            const data = JSON.parse(message)
+    initValKeySubscriber(io)
 
-            io.emit('server:location:update', data)
-            console.log("data sent to: 'server:location:update'")
-        }
-        else {
-            console.log("subcriber.on error handling remaining")
-        }
-    })
 
     subscriber.on('error', (error) => {
         console.error('[Redis Subscriber] Error:', error.message)
@@ -53,7 +45,7 @@ const main = async () => {
     } catch (error) {
         console.error('[Kafka] Failed to initialize producer:', error)
     }
-    
+
     try {
         const consumer = await initConsumer(groupID)
         await ConsumeData(consumer,
@@ -74,7 +66,7 @@ const main = async () => {
 
         const keys = await publisher.keys("user:*")
 
-        for(const key of keys){
+        for (const key of keys) {
             const data = await publisher.hgetall(key)
             const payload = {
                 userID: key.split(":")[1],
@@ -82,12 +74,12 @@ const main = async () => {
                 lng: parseFloat(data.lng)
             }
 
-            socket.emit('server:location:update',payload )
+            socket.emit('server:location:update', payload)
         }
 
 
         socket.on('client:location:update', async (clientCoords) => {
-            console.log("client coordinates recieved, sending to the producers")
+            console.log("client coordinates recieved: ", {clientCoords})
             const payload = {
                 ...clientCoords,
                 socketId: socket.id,
@@ -116,8 +108,8 @@ const main = async () => {
             }
         })
 
-        socket.on('disconnect', async() => {
-            console.log("SOCKET DISCONNECTED: ",socket.id)
+        socket.on('disconnect', async () => {
+            console.log("SOCKET DISCONNECTED: ", socket.id)
 
             try {
                 await publisher.del(`user:${socket.id}`)
