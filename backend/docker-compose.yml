@@ -29,4 +29,11 @@ services:
       # Optional but useful
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_DELETE_TOPIC_ENABLE: "true"
+
+
+  valkey:
+    image: redis:7
+    container_name: valkey
+    ports:
+      - "6379:6379"
       

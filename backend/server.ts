@@ -5,6 +5,8 @@ import { Server } from "socket.io"
 import { initProducer, sendLocData } from "./src/kafka/kafka-producer.ts"
 import { ConsumeData, initConsumer } from "./src/kafka/kafka-consumer.ts"
 import { fileURLToPath } from "url"
+import { publisher, subscriber } from "./src/utils/redis-connection.ts"
+import { Partitioners } from "kafkajs"
 
 const main = async () => {
     const app = express()
@@ -20,32 +22,116 @@ const main = async () => {
         }
     })
 
-    //Apache Kafka
-    await initProducer()
-    const consumer = await initConsumer(groupID)
-    await ConsumeData(consumer,
-        'location-update',
-        (data) => {
-            io.except(data.socketId).emit('server:location:update', data)
+    //valkey subscriber
+    try {
+        await subscriber.subscribe('location-updates')
+        console.log('[Redis] Subscribed to location-updates')
+    } catch (error) {
+        console.error('[Redis] Failed to subscribe:', error)
+    }
+
+    subscriber.on('message', (channel, message) => {
+        if (channel === 'location-updates') {
+            const data = JSON.parse(message)
+
+            io.emit('server:location:update', data)
+            console.log("data sent to: 'server:location:update'")
         }
-    )
+        else {
+            console.log("subcriber.on error handling remaining")
+        }
+    })
+
+    subscriber.on('error', (error) => {
+        console.error('[Redis Subscriber] Error:', error.message)
+    })
+
+    //Apache Kafka
+    try {
+        await initProducer()
+        console.log('[Kafka] Producer initialized')
+    } catch (error) {
+        console.error('[Kafka] Failed to initialize producer:', error)
+    }
+    
+    try {
+        const consumer = await initConsumer(groupID)
+        await ConsumeData(consumer,
+            'location-update',
+            (data) => {
+                console.log("coordinates recieved: streaming would be handled by valkey")
+            }
+        )
+    } catch (error) {
+        console.error('[Kafka] Failed to initialize consumer:', error)
+    }
 
 
 
     //socket.io
-    io.on('connection', (socket) => {
+    io.on('connection', async (socket) => {
         console.log("SOCKET: ", socket.id)
+
+        const keys = await publisher.keys("user:*")
+
+        for(const key of keys){
+            const data = await publisher.hgetall(key)
+            const payload = {
+                userID: key.split(":")[1],
+                lat: parseFloat(data.lat),
+                lng: parseFloat(data.lng)
+            }
+
+            socket.emit('server:location:update',payload )
+        }
+
 
         socket.on('client:location:update', async (clientCoords) => {
             console.log("client coordinates recieved, sending to the producers")
-
-            await sendLocData('location-update', {
+            const payload = {
                 ...clientCoords,
                 socketId: socket.id,
-                userID: socket.id
-            },
-            socket.id
-            )
+                userID: socket.id,
+            }
+
+            try {
+                await publisher.hset(
+                    `user:${payload.userID}`,
+                    "lat", payload.lat,
+                    "lng", payload.lng
+                );
+
+                await publisher.publish(
+                    "location-updates",
+                    JSON.stringify(payload)
+                );
+            } catch (error) {
+                console.error('[Redis] Error storing/publishing location:', error)
+            }
+
+            try {
+                await sendLocData('location-update', payload, socket.id)
+            } catch (error) {
+                console.error('[Kafka] Error sending location data:', error)
+            }
+        })
+
+        socket.on('disconnect', async() => {
+            console.log("SOCKET DISCONNECTED: ",socket.id)
+
+            try {
+                await publisher.del(`user:${socket.id}`)
+
+                await publisher.publish(
+                    'location-updates',
+                    JSON.stringify({
+                        userID: socket.id,
+                        disconnected: true
+                    })
+                )
+            } catch (error) {
+                console.error('[Redis] Error handling disconnect:', error)
+            }
         })
     })
 
