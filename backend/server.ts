@@ -2,10 +2,10 @@ import express from "express"
 import http from "http"
 import path from "path"
 import { Server } from "socket.io"
-import { initProducer, sendLocData } from "./src/kafka/kafka-producer.ts"
-import { ConsumeData, initConsumer } from "./src/kafka/kafka-consumer.ts"
+import { initProducer, sendLocData } from "./src/common/kafka/kafka-producer.ts"
+import { ConsumeData, initConsumer } from "./src/common/kafka/kafka-consumer.ts"
 import { fileURLToPath } from "url"
-import { publisher, subscriber } from "./src/utils/redis-connection.ts"
+import { publisher, subscriber } from "./src/common/utils/redis-connection.ts"
 import { initValKeySubscriber } from "./src/valkey/initSubscriber.ts"
 import connectDB from "./src/Database/db.ts"
 
@@ -19,7 +19,7 @@ const main = async () => {
     const __dirname = path.dirname(__filename);
 
     //mongoose
-    await connectDB
+    await connectDB()
 
     const io = new Server(server, {
         cors: {
