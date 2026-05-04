@@ -58,5 +58,6 @@ const generateResetTok = () => {
 export {
     generateAccTok,
     generateRefTok,
-    generateResetTok
+    generateResetTok,
+    verifyAccTok
 }
