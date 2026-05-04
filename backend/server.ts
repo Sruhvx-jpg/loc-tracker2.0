@@ -7,6 +7,7 @@ import { ConsumeData, initConsumer } from "./src/kafka/kafka-consumer.ts"
 import { fileURLToPath } from "url"
 import { publisher, subscriber } from "./src/utils/redis-connection.ts"
 import { initValKeySubscriber } from "./src/valkey/initSubscriber.ts"
+import connectDB from "./src/Database/db.ts"
 
 
 const main = async () => {
@@ -16,6 +17,9 @@ const main = async () => {
     const groupID = `SOCKET-SERVER-${port}`
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
+
+    //mongoose
+    await connectDB
 
     const io = new Server(server, {
         cors: {

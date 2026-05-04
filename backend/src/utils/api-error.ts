@@ -5,5 +5,9 @@ class apiErr extends Error{
         super(message)
         this.statusCode = statusCode
         this.isOperational = true
-    }  
+    }
+    
+    static unknownErr(message = "unknow error"){
+        return new apiErr(0,message)
+    }
 }

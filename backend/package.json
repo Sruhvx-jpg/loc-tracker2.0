@@ -14,11 +14,15 @@
   "packageManager": "pnpm@10.33.2",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "ioredis": "^5.10.1",
+    "joi": "^18.1.2",
     "kafkajs": "^2.2.4",
+    "mongoose": "^9.6.1",
+    "mongoose-unique-validator": "^6.1.1",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
