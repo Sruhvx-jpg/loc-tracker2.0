@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import uniqueValidator from "mongoose-unique-validator";
 import bcrypt from "bcryptjs"
+import { Document } from 'mongoose';
 
 const {Schema} = mongoose
 const Email = new Schema({
@@ -16,8 +17,23 @@ const userSchema = new Schema({
   username: {type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/^[a-zA-Z0-9]+$/, 'is invalid'], index: true},
   password: {type: String, required: true},
   email: {type: Email, require: true},
-  active: {type: Boolean, default: true}
+  active: {type: Boolean, default: true},
+  resToken: {type: String},
+  refToken: {type: String}
 });
+
+interface IUser extends Document {
+  username: string;
+  password: string;
+  email: {
+    address: string;
+    validated: boolean;
+  };
+  active: boolean;
+  resToken?: string;
+  refToken?: string;
+  comparePassword(plaintext: string): Promise<boolean>;
+}
 
 userSchema.pre("save", function() {
     if(!this.isModified("password")) {
@@ -27,9 +43,10 @@ userSchema.pre("save", function() {
 });
 
 userSchema.methods.comparePassword = function(plaintext: string) {
-    return bcrypt.compare(plaintext, this.passworf)
+    return bcrypt.compare(plaintext, this.password)
 };
 
 userSchema.plugin(uniqueValidator, {message: "is already taken"})
 
-const user = mongoose.model('user', userSchema);
+const mongoUser = mongoose.model('user', userSchema);
+export default mongoUser
