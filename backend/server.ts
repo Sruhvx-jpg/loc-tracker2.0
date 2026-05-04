@@ -5,8 +5,8 @@ import { Server } from "socket.io"
 import { initProducer, sendLocData } from "./src/common/kafka/kafka-producer.ts"
 import { ConsumeData, initConsumer } from "./src/common/kafka/kafka-consumer.ts"
 import { fileURLToPath } from "url"
-import { publisher, subscriber } from "./src/common/utils/redis-connection.ts"
-import { initValKeySubscriber } from "./src/valkey/initSubscriber.ts"
+import { publisher, subscriber } from "./src/common/valkey/redis-connection.ts"
+import { initValKeySubscriber } from "./src/common/valkey/initSubscriber.ts"
 import connectDB from "./src/Database/db.ts"
 
 
