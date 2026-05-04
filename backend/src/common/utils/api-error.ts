@@ -10,4 +10,14 @@ class apiErr extends Error{
     static unknownErr(message = "unknow error"){
         return new apiErr(0,message)
     }
+
+    static badReq(message = "bad request"){
+        return new apiErr(0, message)
+    }
+
+    static JWTsecNotFound(message = "jwt secret not found"){
+        return new apiErr(0, message)
+    }
 }
+
+export default apiErr
