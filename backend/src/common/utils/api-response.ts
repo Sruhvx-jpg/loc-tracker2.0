@@ -1,11 +1,11 @@
 import {Response} from "express"
 
-class apiRes{
-    static ok(res: Response, message: string, data: any){
-        return res.status(200).json({
+export class apiRes{
+    static apiResPlate(res: Response, message: String,content: string | object,statusCode: number){
+        return res.status(statusCode).json({
             success: true,
             message,
-            data
+            content
         })
     }
 }

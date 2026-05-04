@@ -7,6 +7,11 @@ class apiErr extends Error {
         this.isOperational = true
     }
 
+
+    static unauthorized(message = "unknow error") {
+        return new apiErr(0, message)
+    }
+
     static unknownErr(message = "unknow error") {
         return new apiErr(0, message)
     }
@@ -24,6 +29,10 @@ class apiErr extends Error {
     }
 
     static illegalAccess(message = "email already exists") {
+        return new apiErr(0, message)
+    }
+
+    static internalErr(message = "insert your error"){
         return new apiErr(0, message)
     }
 }

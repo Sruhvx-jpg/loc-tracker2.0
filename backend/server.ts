@@ -8,6 +8,7 @@ import { fileURLToPath } from "url"
 import { publisher, subscriber } from "./src/streaming&fanout pipeline/valkey/redis-connection.ts"
 import { initValKeySubscriber } from "./src/streaming&fanout pipeline/valkey/initSubscriber.ts"
 import connectDB from "./src/Database/db.ts"
+import authRouter from "./src/auth/user/user.routes.ts"
 
 
 const main = async () => {
@@ -135,6 +136,7 @@ const main = async () => {
     //express 
     app.use(express.static(path.join(__dirname, "../../frontend/locTracker2.0/dist")))
     app.get('/', (req, res) => res.send('Hello World!'))
+    app.use("/api/auth", authRouter)
     server.listen(port, () => console.log(`Example app listening on port ${port}!`))
 }
 

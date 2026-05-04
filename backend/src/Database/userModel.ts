@@ -11,7 +11,7 @@ const Email = new Schema({
 	
 	});
 
-interface IUser extends Document {
+export interface IUser extends Document {
   username: string;
   password: string;
   email: {

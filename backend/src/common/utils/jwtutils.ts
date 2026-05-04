@@ -17,7 +17,7 @@ const generateAccTok = (payload: string): string => {
         throw apiErr.JWTsecNotFound("jwt secret not found")
     }
 
-    return jwt.sign(payload, secret, options)
+    return jwt.sign({userId: payload}, secret, options)
 }
 
 const verifyAccTok = (accToken: string): Object | string => {
@@ -43,7 +43,7 @@ const generateRefTok = (payload: string): string => {
         throw apiErr.JWTsecNotFound("jwt secret not found")
     }
 
-    return jwt.sign(payload, secret,)
+    return jwt.sign({userId: payload}, secret, options)
 }
 
 const generateResetTok = () => {

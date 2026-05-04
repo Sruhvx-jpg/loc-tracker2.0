@@ -3,8 +3,8 @@ import BaseDto from "../../../common/dto/basedto.ts";
 
 class loginDto extends BaseDto {
     static Schema = joi.object({
-        email: joi.string(),
-        password: joi.string(),
+        email: joi.string().required(),
+        password: joi.string().required(),
     })
 }
 
