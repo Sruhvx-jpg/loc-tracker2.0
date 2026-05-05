@@ -10,6 +10,7 @@ import { publisher, subscriber } from "./src/streaming&fanout-pipeline/valkey/re
 import { initValKeySubscriber } from "./src/streaming&fanout-pipeline/valkey/initSubscriber.ts"
 import connectDB from "./src/Database/db.ts"
 import authRouter from "./src/auth/user/user.routes.ts"
+import cookieParser from "cookie-parser"
 
 
 
@@ -20,6 +21,7 @@ const main = async () => {
     //---------------------------------------------------------------------------------------------------------------
     const app = express()
     app.use(express.json())
+    app.use(cookieParser())
     const server = http.createServer(app)
     const port = 3000
 
