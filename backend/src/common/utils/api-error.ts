@@ -25,14 +25,19 @@ class apiErr extends Error {
     }
 
     static emailConflict(message = "email already exists") {
-        return new apiErr(0, message)
+        return new apiErr(409, message)
     }
+
+    static userNameConflict(message = "User's name is already in use") {
+        return new apiErr(409, message)
+    }
+
 
     static illegalAccess(message = "email already exists") {
         return new apiErr(0, message)
     }
 
-    static internalErr(message = "insert your error"){
+    static internalErr(message = "insert your error") {
         return new apiErr(0, message)
     }
 }

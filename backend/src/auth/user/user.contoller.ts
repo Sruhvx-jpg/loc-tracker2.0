@@ -4,11 +4,7 @@ import {Response, Request, NextFunction} from "express"
 import { AuthReq } from "./user.middleware.ts";
 import { apiRes } from "../../common/utils/api-response.ts";
 
-const registerController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const registerController = async (req: Request,res: Response,next: NextFunction) => {
   try {
     const result = await register(req.body)
     console.log(result)

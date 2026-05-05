@@ -4,13 +4,9 @@ import { verifyEmailTemplate } from "./emailTemplate";
 
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
+  host: "localhost",
+  port: 25,
   secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
 });
 
 export const sendVerificationEmail = async (
@@ -21,7 +17,7 @@ export const sendVerificationEmail = async (
   const verifyUrl = `${process.env.CLIENT_URL}/verify?token=${token}`;
 
   const info = await transporter.sendMail({
-    from: `"YourApp" <${process.env.SMTP_USER}>`,
+    from: `"YourApp" <sruhvxop26@gmail.com>`,
     to,
     subject: "Verify your email",
     text: `Hey ${username}, verify your email: ${verifyUrl}`,
