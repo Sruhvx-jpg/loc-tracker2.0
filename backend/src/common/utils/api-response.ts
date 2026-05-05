@@ -9,11 +9,19 @@ export class apiRes{
         })
 
     }
+
+    static registerApiRes(res: Response, message: string,payload: any){
+        return res.json({
+            message,
+            payload
+        })
+    }
+
     static created(message : String , payload: any){
         return {
             status: 200,
            message , 
-           payload
+           payload,
         }
     }
 }

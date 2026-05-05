@@ -10,12 +10,12 @@ const registerController = async (
   next: NextFunction
 ) => {
   try {
-    const result = await register(req.body);
-    console.log(result);
-    return res.status(201).json({message: "Registration successful. Please check your email to verify your account.", data: result});
+    const result = await register(req.body)
+    console.log(result)
+    return apiRes.registerApiRes(res, "registration successfull", result)
   } catch (err) {
-    console.log(err);
-    return next(err);
+    console.log(err)
+    return next(err)
 
   }
 };
