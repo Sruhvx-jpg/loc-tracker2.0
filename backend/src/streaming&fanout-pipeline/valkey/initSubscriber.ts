@@ -1,8 +1,8 @@
 import { Server } from "socket.io"
 import { subscriber } from "./redis-connection.ts"
 
-export const initValKeySubscriber = async (io: Server) => {
-    await subscriber.subscribe('location-updates')
+export const initValKeySubscriber = async (io: Server, topic: string) => {
+    await subscriber.subscribe(topic)
 
     subscriber.on('message', (channel, message) => {
         if (channel === 'location-updates') {

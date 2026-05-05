@@ -47,6 +47,9 @@ importers:
       socket.io:
         specifier: ^4.8.3
         version: 4.8.3
+      start:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       '@types/express':
         specifier: ^5.0.6
@@ -951,6 +954,11 @@ packages:
 
   standard-as-callback@2.1.0:
     resolution: {integrity: sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==}
+
+  start@5.1.0:
+    resolution: {integrity: sha512-lirwWQmvBC65bnxU3HzKx5m7vfZJZTx/FrKyPWbtobcvujGbinQQRrNodtcgkp4mTZ00umzDeg7lraN351l0aA==}
+    engines: {node: '>=4'}
+    deprecated: Deprecated in favor of https://github.com/deepsweet/start
 
   statuses@2.0.2:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
@@ -1937,6 +1945,8 @@ snapshots:
       memory-pager: 1.5.0
 
   standard-as-callback@2.1.0: {}
+
+  start@5.1.0: {}
 
   statuses@2.0.2: {}
 

@@ -43,7 +43,7 @@ const main = async () => {
         console.error('[Redis] Failed to subscribe:', error)
     }
 
-    initValKeySubscriber(io)
+    initValKeySubscriber(io, 'location-updates')
 
 
     subscriber.on('error', (error) => {

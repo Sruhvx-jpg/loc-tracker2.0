@@ -25,7 +25,8 @@
     "mongoose": "^9.6.1",
     "mongoose-unique-validator": "^6.1.1",
     "nodemailer": "^8.0.7",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "start": "^5.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
