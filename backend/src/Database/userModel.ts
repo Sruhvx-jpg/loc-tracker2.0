@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import uniqueValidator from "mongoose-unique-validator";
 import bcrypt from "bcryptjs"
-import { Document } from 'mongoose';
+import { Document } from 'mongoose'
 
 const {Schema} = mongoose
 
@@ -10,9 +10,10 @@ export interface IUser extends Document {
   username: string;
   password: string;
   email: string;
+  isEmailVerified: boolean;
   active: boolean;
-  resToken?: string;
-  refToken?: string;
+  hashedEmailVerTok: String;
+  refreshToken: String;
   comparePassword(plaintext: string): Promise<boolean>;
 }
 
@@ -22,9 +23,10 @@ const userSchema = new Schema<IUser>({
   username: {type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/^[a-zA-Z0-9]+$/, 'is invalid'], index: true},
   password: {type: String, required: true , select : false},
   email: {type: String, required: true},
+  isEmailVerified: {type: Boolean, required: false},
   active: {type: Boolean, default: true},
-  resToken: {type: String},
-  refToken: {type: String}
+  hashedEmailVerTok: String,
+  refreshToken: String
 });
 
 

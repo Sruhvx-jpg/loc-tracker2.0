@@ -14,7 +14,7 @@ export const sendVerificationEmail = async (
   username: string,
   token: string
 ) => {
-  const verifyUrl = `${process.env.CLIENT_URL}/verify?token=${token}`;
+  const verifyUrl = `http://localhost:3000/api/auth/verify?token=${token}`;
 
   const info = await transporter.sendMail({
     from: `"YourApp" <sruhvxop26@gmail.com>`,

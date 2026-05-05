@@ -24,4 +24,12 @@ export class apiRes{
            payload,
         }
     }
+
+    static success(res: Response ,message: String, payload: any){
+        return res.json({
+            status: 200,
+            message,
+            payload
+        })
+    }
 }

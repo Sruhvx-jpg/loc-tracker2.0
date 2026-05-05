@@ -1,63 +1,48 @@
 import jwt, { SignOptions } from "jsonwebtoken"
 import "dotenv/config"
-import apiErr from "./api-error.ts"
 import * as crypto from 'crypto';
+import bcrypt from "bcryptjs";
 
 
-const generateAccTok = (payload: string): string => {
-    const secret = process.env.JWT_ACCESS_SECRET
+const generateVerifyEmailTokUtil = () => {
+    const rawTok = crypto.randomBytes(32).toString("hex")
+    const hashedTok = crypto.createHash("sha256").update(rawTok).digest("hex")
 
-
-    const options: SignOptions = {
-        expiresIn: (process.env.JWT_ACCESS_TOKEN_EXPIRESIN || "15m") as SignOptions["expiresIn"],
-    };
-
-    //remove this later
-    if (!secret) {
-        throw apiErr.JWTsecNotFound("jwt secret not found")
-    }
-
-    return jwt.sign({userId: payload}, secret, options)
+    return {rawTok, hashedTok}
 }
 
-const verifyAccTok = (accToken: string): Object | string => {
-    const secret = process.env.JWT_ACCESS_SECRET
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
 
-    //remove this later
-    if (!secret) {
-        throw apiErr.JWTsecNotFound("jwt secret not found")
-    }
+const generateAuthTokens = async (userId: string) => {
+  const payload = { id: userId };
 
-    return jwt.verify(accToken, secret)
-}
+  const accessToken = jwt.sign(payload, ACCESS_SECRET, {
+    expiresIn: "15m",
+  });
 
-const generateRefTok = (payload: string): string => {
-    const secret = process.env.JWT_REFRESH_SECRET
+  const refreshToken = jwt.sign(payload, REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
 
-    const options: SignOptions = {
-        expiresIn: (process.env.JWT_REFRESH_TOKEN_EXPIRESIN || "15m") as SignOptions["expiresIn"],
-    };
+  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
-    //remove this later
-    if (!secret) {
-        throw apiErr.JWTsecNotFound("jwt secret not found")
-    }
+  return {
+    accessToken,
+    refreshToken,
+    hashedRefreshToken,
+  };
+};
 
-    return jwt.sign({userId: payload}, secret, options)
-}
+const verifyAccessToken = (token: string) => {
+  if (!token) throw new Error("No token provided");
 
-const generateResetTok = () => {
-    const rawToken = crypto.randomBytes(32).toString("hex")
-    const hashedTok = crypto.createHash("sha256").update(rawToken).digest("hex")
+  try {
+    const decoded = jwt.verify(token, ACCESS_SECRET);
+    return decoded; // { id: userId }
+  } catch {
+    throw new Error("Invalid or expired access token");
+  }
+};
 
-    return {rawToken, hashedTok}
-}
-
-
-
-export {
-    generateAccTok,
-    generateRefTok,
-    generateResetTok,
-    verifyAccTok
-}
+export {generateVerifyEmailTokUtil, generateAuthTokens, verifyAccessToken}

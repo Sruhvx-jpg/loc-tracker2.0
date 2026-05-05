@@ -40,6 +40,14 @@ class apiErr extends Error {
     static internalErr(message = "insert your error") {
         return new apiErr(0, message)
     }
+
+    static emailAlreadyVerified(message = "Your email is already verified") {
+        return new apiErr(0, message)
+    }
+
+    static invalidToken(message = "Your email is already verified") {
+        return new apiErr(0, message)
+    }
 }
 
 export default apiErr

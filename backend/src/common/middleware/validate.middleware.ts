@@ -20,3 +20,12 @@ export const validate = (DtoClass: any) => {
   };
 };
  
+export const validateVerifyQuery = (req: Request, res: Response, next: NextFunction) => {
+  const { token } = req.query;
+
+  if (!token || typeof token !== "string") {
+    return res.status(400).json({ message: "Invalid token" });
+  }
+
+  next();
+};

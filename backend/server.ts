@@ -15,6 +15,9 @@ import authRouter from "./src/auth/user/user.routes.ts"
 
 
 const main = async () => {
+    //--------------------------------------------dev thingy remove this later---------------------------------------
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    //---------------------------------------------------------------------------------------------------------------
     const app = express()
     app.use(express.json())
     const server = http.createServer(app)

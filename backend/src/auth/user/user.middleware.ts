@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import apiErr from "../../common/utils/api-error.ts";
-import { verifyAccTok } from "../../common/utils/jwtutils.ts";
 import mongoUser, { IUser } from "../../Database/userModel.ts";
+import { verifyAccessToken } from "../../common/utils/jwtutils.ts";
 
 export type AuthReq = Request & {
     user: IUser
@@ -20,7 +20,7 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
   }
 
   try {
-    const decoded = verifyAccTok(token) as { userId: string };
+    const decoded = verifyAccessToken(token) as { userId: string };
 
     const user = await mongoUser.findById(decoded.userId).select("-password");
 

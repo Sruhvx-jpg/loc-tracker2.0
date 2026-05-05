@@ -1,30 +1,35 @@
-import mongoose from "mongoose";
 import apiErr from "../../common/utils/api-error.ts"
 import { apiRes } from "../../common/utils/api-response.ts";
-import { generateResetTok, generateAccTok, generateRefTok } from "../../common/utils/jwtutils"
 import mongoUser from "../../Database/userModel.ts"
+import { generateAuthTokens, generateVerifyEmailTokUtil } from "../../common/utils/jwtutils.ts";
+import { sendVerificationEmail } from "../../common/service/nodemailer.ts";
 import crypto from "crypto"
 
+const register = async ({ username, email, password }: { username: string, email: string, password: string }) => {
 
-const register = async ({username,email,password}: {username: string,email: string,password: string} ) => {
+  const existingUser = await mongoUser.findOne({ $or: [{ email }, { username }] });
 
-  const existingUser = await mongoUser.findOne({$or: [{email}, {username}]});
+  if (existingUser) {
+    if (existingUser.email === email) throw apiErr.emailConflict();
+    if (existingUser.username === username) throw apiErr.userNameConflict();
+    return 
+  }
 
-if (existingUser) {
-  if (existingUser.email === email) throw apiErr.emailConflict();
-  if (existingUser.username === username) throw apiErr.userNameConflict();
-}
+  const {rawTok, hashedTok} = generateVerifyEmailTokUtil()
 
 
   const newUser = await mongoUser.create({
     username,
     email,
     password,
+    isEmailVerified: false,
+    hashedEmailVerTok: hashedTok
   });
 
-  const {password: ignored , ...sanitizedUser} = newUser.toObject();
-  console.log("DB NAME:", mongoose.connection.name);
+  await sendVerificationEmail(email, username, rawTok)
 
+
+  const { password: ignored, ...sanitizedUser } = newUser.toObject();
 
   return apiRes.created(
     "success",
@@ -32,5 +37,39 @@ if (existingUser) {
   );
 };
 
+const verifyEmail = async (token: string) => {
+  if (!token) throw apiErr.invalidToken();
 
-export { register }
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await mongoUser.findOne({
+    hashedEmailVerTok: hashedToken,
+  });
+
+  if (!user) throw apiErr.invalidToken();
+  if (user.isEmailVerified) throw apiErr.emailAlreadyVerified();
+
+  user.isEmailVerified = true;
+  user.hashedEmailVerTok = "_";
+
+  
+  const { accessToken, refreshToken, hashedRefreshToken } =
+    await generateAuthTokens(user._id.toString());
+
+  user.refreshToken = hashedRefreshToken;
+
+  await user.save();
+
+  const { password: _p, ...sanitizedUser } = user.toObject();
+
+  return {
+    user: sanitizedUser,
+    accessToken,
+    refreshToken,
+  };
+};
+
+export { register, verifyEmail }
