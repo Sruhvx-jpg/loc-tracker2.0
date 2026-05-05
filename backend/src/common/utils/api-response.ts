@@ -1,11 +1,19 @@
 import {Response} from "express"
 
 export class apiRes{
-    static apiResPlate(res: Response, message: String,content: string | object,statusCode: number){
-        return res.status(statusCode).json({
+    static apiResPlate(res: Response, message: String){
+        return res.json({
             success: true,
             message,
-            content
+           
         })
+
+    }
+    static created(message : String , payload: any){
+        return {
+            status: 200,
+           message , 
+           payload
+        }
     }
 }

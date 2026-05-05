@@ -1,5 +1,5 @@
 import { Server } from "socket.io"
-import { subscriber } from "../common/utils/redis-connection"
+import { subscriber } from "./redis-connection.ts"
 
 export const initValKeySubscriber = async (io: Server) => {
     await subscriber.subscribe('location-updates')

@@ -4,20 +4,12 @@ import bcrypt from "bcryptjs"
 import { Document } from 'mongoose';
 
 const {Schema} = mongoose
-const Email = new Schema({
-	
-		address: {type: String, lowercase: true, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true},
-		validated: {type: Boolean, default: false}
-	
-	});
+
 
 export interface IUser extends Document {
   username: string;
   password: string;
-  email: {
-    address: string;
-    validated: boolean;
-  };
+  email: string;
   active: boolean;
   resToken?: string;
   refToken?: string;
@@ -28,8 +20,8 @@ export interface IUser extends Document {
 //user schema
 const userSchema = new Schema<IUser>({
   username: {type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/^[a-zA-Z0-9]+$/, 'is invalid'], index: true},
-  password: {type: String, required: true},
-  email: {type: Email, required: true},
+  password: {type: String, required: true , select : false},
+  email: {type: String, required: true},
   active: {type: Boolean, default: true},
   resToken: {type: String},
   refToken: {type: String}
@@ -49,5 +41,5 @@ userSchema.methods.comparePassword = function(this: IUser ,plaintext: string) {
 
 userSchema.plugin(uniqueValidator, {message: "is already taken"})
 
-const mongoUser = mongoose.model<IUser>('user', userSchema);
+const mongoUser = mongoose.model('user', userSchema);
 export default mongoUser

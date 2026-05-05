@@ -1,24 +1,82 @@
+# version: "3.8"
+
+# services:
+#   broker:
+#     image: apache/kafka:latest
+#     container_name: broker
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       # KRaft basics
+#       KAFKA_NODE_ID: 1
+#       KAFKA_PROCESS_ROLES: broker,controller
+
+#       # Listeners (MUST match advertised listeners)
+#       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+#       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+
+#       # Controller setup
+#       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+#       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+#       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+
+#       # Single-node safe settings
+#       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+#       # Optional but useful
+#       KAFKA_NUM_PARTITIONS: 3
+#       KAFKA_DELETE_TOPIC_ENABLE: "true"
+
+
+#   valkey:
+#     image: redis:7
+#     container_name: valkey
+#     ports:
+#       - "6379:6379"
+#   mongodb:
+#     image: mongo
+#     container_name: mongodb
+#     restart: always
+#     ports:
+#       - "27017:27017"
+#     environment:
+#       MONGO_INITDB_ROOT_USERNAME: admin
+#       MONGO_INITDB_ROOT_PASSWORD: password
+#     volumes:
+#       - mongo-data:/data/db
+
+# volumes:
+#   mongo-data:
+
+
+
 version: "3.8"
 
 services:
+  # Kafka Broker with KRaft mode (no Zookeeper needed)
   broker:
     image: apache/kafka:latest
     container_name: broker
     ports:
       - "9092:9092"
+      - "9093:9093"
     environment:
       # KRaft basics
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CLUSTER_ID: MkQkQODiTWCYjSZuKc5cIg
 
       # Listeners (MUST match advertised listeners)
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://broker:9092,CONTROLLER://broker:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,CONTROLLER://broker:9093
 
       # Controller setup
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
 
       # Single-node safe settings
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -29,24 +87,109 @@ services:
       # Optional but useful
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server=localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - mongodb
 
 
+  # Redis (Valkey compatible)
   valkey:
-    image: redis:7
+    image: redis:7-alpine
     container_name: valkey
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redispassword
+    networks:
+      - app-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+
+  # MongoDB with authentication
   mongodb:
-    image: mongo
+    image: mongo:7
     container_name: mongodb
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: loctracker
+    networks:
+      - app-network
     volumes:
       - mongo-data:/data/db
+      - mongo-config:/data/configdb
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    command: --auth
+
+
+  # Optional: Mongo Express for UI management
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+    networks:
+      - app-network
+    depends_on:
+      - mongodb
+
+
+  # Optional: Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: null
+    networks:
+      - app-network
+    depends_on:
+      - broker
+
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   mongo-data:
+    driver: local
+  mongo-config:
+    driver: local
+  redis-data:
+    driver: local

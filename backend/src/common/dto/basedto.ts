@@ -1,22 +1,25 @@
-import joi from "joi";
+import Joi from "joi";
 
-class BaseDto{
-    static Schema = joi.object({})
+class BaseDto {
+  static schema = Joi.object({});
 
-    
-    static async validateAsync(data: any){
-        try {
-            const {error, value} = await this.Schema.validateAsync(data, {
-                abortEarly: false,
-                stripUnknown: true
-            })
+  static validate<T>(data: T) {
+    const { error, value } = this.schema.validate(data, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
-            return {error: null, value}
-        } catch (error: any) {
-            const err = await error.details.map((d: any) => d.message).join(", ")
-            return {error, value: null}
-        }
+    if (error) {
+      const errors = error.details.map((detail) => ({
+        field: detail.path.join("."),
+        message: detail.message,
+      }));
+
+      return { errors, value: null };
     }
+
+    return { errors: null, value };
+  }
 }
 
-export default BaseDto
+export default BaseDto;

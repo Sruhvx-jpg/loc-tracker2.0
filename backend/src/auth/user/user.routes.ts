@@ -1,16 +1,13 @@
 import { Router } from "express"
-import validate from "../../common/middleware/validate.middleware.ts"
-import registerDto from "./dto/register-dto"
-import { getMeController, loginController, registerController, verifyController } from "./user.contoller.ts"
-import loginDto from "./dto/login-dto.ts"
-import authenticate from "./user.middleware.ts"
+import { validate } from "../../common/middleware/validate.middleware.ts"
+import RegisterDto from "./dto/register-dto"
+import {  registerController } from "./user.contoller.ts"
+
 
 const authRouter = Router()
 
-authRouter .post("/register",validate(registerDto), registerController)
-authRouter .post("/login",validate(loginDto), loginController)
 
-authRouter .get("/verifyEmail", verifyController)
-authRouter .get("/getMe", authenticate, getMeController)
+authRouter.post("/register", validate(RegisterDto) ,  registerController)
+
 
 export default authRouter 

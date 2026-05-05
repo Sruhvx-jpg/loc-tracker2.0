@@ -1,22 +1,22 @@
 import { NextFunction, Request, Response } from "express"
-import apiErr  from "../utils/api-error"
-
-
-const validate = (Dtoclass: any) => {
-    return async (req: Request, _ : Response, next: NextFunction) => {
-        const {error, value} = await Dtoclass.validateAsync(req.body, {
-            abortEarly: false,
-            stripUnknown: true,
-        })
-
-        if(error){
-            const errMsg = error.details.map((e: any) => e.message)
-            return next(apiErr.badReq(errMsg.join("; ")))
-        }
-        
-        req.body = value
-        next()
+import apiErr from "../utils/api-error"
+ 
+export const validate = (DtoClass: any) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const { errors, value } = DtoClass.validate(req.body);
+ 
+    console.log("Validation errors:", errors);
+    console.log("Validation value:", value);
+    
+    if (errors) {
+      // Convert errors array to readable format
+      const errorMessages = errors.map((err: any) => `${err.field}: ${err.message}`).join(", ");
+      throw apiErr.badReq(errorMessages);
     }
-}
-
-export default validate
+    
+    // Set the validated and cleaned body
+    req.body = value;
+    next();
+  };
+};
+ 

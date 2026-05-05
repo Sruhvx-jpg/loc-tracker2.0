@@ -1,26 +1,33 @@
+import 'dotenv/config'  
 import express from "express"
 import http from "http"
 import path from "path"
 import { Server } from "socket.io"
-import { initProducer, sendLocData } from "./src/streaming&fanout pipeline/kafka/kafka-producer.ts"
-import { ConsumeData, initConsumer } from "./src/streaming&fanout pipeline/kafka/kafka-consumer.ts"
+import { initProducer, sendLocData } from "./src/streaming&fanout-pipeline/kafka/kafka-producer.ts"
+import { ConsumeData, initConsumer } from "./src/streaming&fanout-pipeline/kafka/kafka-consumer.ts"
 import { fileURLToPath } from "url"
-import { publisher, subscriber } from "./src/streaming&fanout pipeline/valkey/redis-connection.ts"
-import { initValKeySubscriber } from "./src/streaming&fanout pipeline/valkey/initSubscriber.ts"
+import { publisher, subscriber } from "./src/streaming&fanout-pipeline/valkey/redis-connection.ts"
+import { initValKeySubscriber } from "./src/streaming&fanout-pipeline/valkey/initSubscriber.ts"
 import connectDB from "./src/Database/db.ts"
 import authRouter from "./src/auth/user/user.routes.ts"
 
 
+
+
 const main = async () => {
     const app = express()
+    app.use(express.json())
     const server = http.createServer(app)
     const port = 3000
+
     const groupID = `SOCKET-SERVER-${port}`
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
-    //mongoose
-    await connectDB()
+  
+
+
+  await connectDB();
 
     const io = new Server(server, {
         cors: {
@@ -133,11 +140,14 @@ const main = async () => {
     })
 
 
-    //express 
     app.use(express.static(path.join(__dirname, "../../frontend/locTracker2.0/dist")))
     app.get('/', (req, res) => res.send('Hello World!'))
     app.use("/api/auth", authRouter)
+    //express 
     server.listen(port, () => console.log(`Example app listening on port ${port}!`))
+
+
+    
 }
 
 main()
