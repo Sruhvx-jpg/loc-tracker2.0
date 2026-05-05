@@ -8,6 +8,7 @@ const registerController = async (req: Request, res: Response, next: NextFunctio
   try {
     const result = await register(req.body)
     console.log(result)
+
     return apiRes.registerApiRes(res, "registration successfull", result)
   } catch (err) {
     console.log(err)
@@ -24,9 +25,16 @@ const verifyEmailController = async (req: Request, res: Response, next: NextFunc
       return res.status(400).json({ message: "Token missing" });
     }
 
-    const result = await verifyEmail(token);
 
-    return apiRes.success(res ,"email verification successfull: autologin....", result)
+    const {accessToken, ...result } = await verifyEmail(token);
+
+      res.cookie("accessToken",  accessToken, {
+        httpOnly:true,
+        secure: false,
+        maxAge: 7 * 24 * 120 * 1000
+    })
+
+    return apiRes.success(res, "email verification successfull: autologin....", result)
   } catch (err) {
     next(err);
   }
@@ -42,7 +50,7 @@ const loginController = async (req: Request, res: Response) => {
 
     const data = await login({ email, password });
 
-    
+
     return apiRes.success(res, "Login successful", data)
   } catch (error: any) {
     return res.status(error.statusCode || 401).json({
