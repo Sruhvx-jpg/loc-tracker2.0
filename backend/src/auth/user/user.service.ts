@@ -12,10 +12,10 @@ const register = async ({ username, email, password }: { username: string, email
   if (existingUser) {
     if (existingUser.email === email) throw apiErr.emailConflict();
     if (existingUser.username === username) throw apiErr.userNameConflict();
-    return 
+    return
   }
 
-  const {rawTok, hashedTok} = generateVerifyEmailTokUtil()
+  const { rawTok, hashedTok } = generateVerifyEmailTokUtil()
 
 
   const newUser = await mongoUser.create({
@@ -55,7 +55,7 @@ const verifyEmail = async (token: string) => {
   user.isEmailVerified = true;
   user.hashedEmailVerTok = "_";
 
-  
+
   const { accessToken, refreshToken, hashedRefreshToken } =
     await generateAuthTokens(user._id.toString());
 
@@ -72,4 +72,41 @@ const verifyEmail = async (token: string) => {
   };
 };
 
-export { register, verifyEmail }
+const login = async ({ email, password }: { email: string; password: string }) => {
+  const user = await mongoUser.findOne({ email });
+
+  if (!user) throw apiErr.invalidCredentials();
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) throw apiErr.invalidCredentials();
+
+  // 🔥 handle unverified users smartly
+  if (!user.isEmailVerified) {
+    const { rawTok, hashedTok } = generateVerifyEmailTokUtil();
+
+    user.hashedEmailVerTok = hashedTok;
+    await user.save();
+
+    await sendVerificationEmail(user.email, user.username, rawTok);
+
+    throw apiErr.emailNotVerified("Verification email sent again");
+  }
+
+  const { accessToken, refreshToken, hashedRefreshToken } =
+    await generateAuthTokens(user._id.toString());
+
+  user.refreshToken = hashedRefreshToken;
+  await user.save();
+
+  const { password: _p, refreshToken: _r, ...sanitizedUser } = user.toObject();
+
+  return {
+    user: sanitizedUser,
+    accessToken,
+    refreshToken,
+  };
+};
+
+
+
+export { register, verifyEmail, login }

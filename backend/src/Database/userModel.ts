@@ -14,6 +14,7 @@ export interface IUser extends Document {
   active: boolean;
   hashedEmailVerTok: String;
   refreshToken: String;
+  lastVerificationEmailSentAt: Date;
   comparePassword(plaintext: string): Promise<boolean>;
 }
 
@@ -26,7 +27,8 @@ const userSchema = new Schema<IUser>({
   isEmailVerified: {type: Boolean, required: false},
   active: {type: Boolean, default: true},
   hashedEmailVerTok: String,
-  refreshToken: String
+  refreshToken: String,
+  lastVerificationEmailSentAt: {type: Date, default: null}
 });
 
 

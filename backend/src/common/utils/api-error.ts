@@ -48,6 +48,18 @@ class apiErr extends Error {
     static invalidToken(message = "Your email is already verified") {
         return new apiErr(0, message)
     }
+
+    static emailNotVerified(message = "email is not verified,please verify the email first"){
+        return new apiErr(0, message)
+    }
+
+    static invalidCredentials(message = "invalid credentials"){
+        return new apiErr(0, message)
+    }
+
+    static toManyEmailVerReq(message = "to many verification request"){
+        return new apiErr(0, message)
+    }
 }
 
 export default apiErr

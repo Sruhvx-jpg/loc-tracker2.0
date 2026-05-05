@@ -1,5 +1,5 @@
 import apiErr from "../../common/utils/api-error.ts";
-import { register, verifyEmail } from "./user.service.ts";
+import { register, verifyEmail, login } from "./user.service.ts";
 import { Response, Request, NextFunction } from "express"
 import { AuthReq } from "./user.middleware.ts";
 import { apiRes } from "../../common/utils/api-response.ts";
@@ -32,4 +32,23 @@ const verifyEmailController = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export { registerController, verifyEmailController }
+const loginController = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      throw new Error("Missing credentials");
+    }
+
+    const data = await login({ email, password });
+
+    
+    return apiRes.success(res, "Login successful", data)
+  } catch (error: any) {
+    return res.status(error.statusCode || 401).json({
+      message: error.message || "Login failed",
+    });
+  }
+};
+
+export { registerController, verifyEmailController, loginController }
