@@ -16,8 +16,12 @@ import handleServerLocUpdate from "../../utils/handleServerLocation.ts";
 import { socketConUtil } from "../../utils/onCon.ts";
 import createSelfMarkerStyle from "./MarkerStyle/selfMarker.ts";
 import { createOtherMarkerStyle } from "./MarkerStyle/otherMarker.ts";
+import { HaversineFormula } from "./distCalc.ts";
 {/*  */ }
 function MapComponent() {
+
+    const prevCoords = useRef<{ lat: number, long: number } | null>(null)
+    const threshold: number = 10
 
     const mapRef = useRef<HTMLDivElement | null>(null);
     const mapObj = useRef<Map | null>(null)
@@ -104,12 +108,36 @@ function MapComponent() {
 
                     if (!socket.connected || !socket.id) return
 
-                    socket.emit('client:location:update', {
-                        userID: socket.id,
-                        socketId: socket.id,
-                        lat: lat,
-                        long: long
-                    })
+                    if (!prevCoords.current) {
+                        prevCoords.current = { lat, long }
+
+                        socket.emit('client:location:update', {
+                            userID: socket.id,
+                            socketId: socket.id,
+                            lat: lat,
+                            long: long
+                        })
+
+                        return
+                    }
+
+                    const DiffIndist = HaversineFormula(
+                        prevCoords.current.lat,
+                        prevCoords.current.long,
+                        lat,
+                        long
+                    )
+
+                    if (DiffIndist >= threshold) {
+                        socket.emit('client:location:update', {
+                            userID: socket.id,
+                            socketId: socket.id,
+                            lat: lat,
+                            long: long
+                        })
+
+                        prevCoords.current = {lat, long}
+                    }
 
                 } catch (error: unknown) {
                     console.error("Location Error: ", error);

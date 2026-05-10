@@ -1,13 +1,15 @@
 import './App.css'
-import MapComponent from './component/MapComp/mapComponent.tsx'
+import RegisterPage from './component/userComp/registerComp/register.tsx';
+// MapComponent from './component/MapComp/mapComponent.tsx'
 
 
-function App () {
+
+function App() {
   return (
     <div className="main">
-      <MapComponent/>
+      <RegisterPage/>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
