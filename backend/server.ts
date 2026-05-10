@@ -147,7 +147,7 @@ const main = async () => {
 
     app.use(express.static(path.join(__dirname, "../../frontend/locTracker2.0/dist")))
     app.get('/', (req, res) => res.send('Hello World!'))
-    app.use("/api/auth", authRouter)
+    app.use("/auth", authRouter)
     //express 
     server.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
