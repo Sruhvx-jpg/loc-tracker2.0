@@ -1,8 +1,9 @@
 import apiErr from "../../common/utils/api-error.ts";
-import { register, verifyEmail, login } from "./user.service.ts";
+import { register, verifyEmail, login, getMe } from "./user.service.ts";
 import { Response, Request, NextFunction } from "express"
 import { AuthReq } from "./user.middleware.ts";
 import { apiRes } from "../../common/utils/api-response.ts";
+import { request } from "http";
 
 const registerController = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -59,4 +60,12 @@ const loginController = async (req: Request, res: Response) => {
   }
 };
 
-export { registerController, verifyEmailController, loginController }
+const getMeController = async(req: Request, res: Response) =>{
+  const userID: any = await req.params.username
+
+  const data = await getMe(userID)
+
+  return apiRes.success(res, "user data fetched successfully", data)
+}
+
+export { registerController, verifyEmailController, loginController, getMeController }

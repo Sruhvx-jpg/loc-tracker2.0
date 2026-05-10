@@ -8,7 +8,7 @@ export type AuthReq = Request & {
 }
 
 
-const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   let token;
 
   if (req.headers.authorization?.startsWith("Bearer ")) {
@@ -28,7 +28,7 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
       return next(apiErr.illegalAccess("User not found"));
     }
 
-    (req as any).user = user;
+    (req as any).username = user;
 
     next();
   } catch (err) {
@@ -36,4 +36,4 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-export default authenticate;
+export default authenticateToken;

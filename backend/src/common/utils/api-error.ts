@@ -60,6 +60,10 @@ class apiErr extends Error {
     static toManyEmailVerReq(message = "to many verification request"){
         return new apiErr(0, message)
     }
+
+    static NotFound(message = " not found"){
+        throw new apiErr(404, message)
+    }
 }
 
 export default apiErr

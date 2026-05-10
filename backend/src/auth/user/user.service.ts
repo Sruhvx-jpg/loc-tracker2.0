@@ -80,7 +80,7 @@ const login = async ({ email, password }: { email: string; password: string }) =
   const isMatch = await user.comparePassword(password);
   if (!isMatch) throw apiErr.invalidCredentials();
 
-  // 🔥 handle unverified users smartly
+
   if (!user.isEmailVerified) {
     const { rawTok, hashedTok } = generateVerifyEmailTokUtil();
 
@@ -107,6 +107,13 @@ const login = async ({ email, password }: { email: string; password: string }) =
   };
 };
 
+const getMe = async(userID: any) => {
+  const user = mongoUser.findById(userID)
+  if(!userID) throw apiErr.NotFound("user not found")
+
+  return user
+}
 
 
-export { register, verifyEmail, login }
+
+export { register, verifyEmail, login, getMe }
