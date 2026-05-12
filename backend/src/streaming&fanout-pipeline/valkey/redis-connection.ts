@@ -4,6 +4,7 @@ function createRedisServer() {
     return new Redis({
         host: "localhost",
         port: 6379,
+        password: "redispassword",
         retryStrategy: (times) => {
             const delay = Math.min(times * 50, 2000);
             return delay;

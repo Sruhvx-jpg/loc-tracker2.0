@@ -5,7 +5,7 @@ export const initValKeySubscriber = async (io: Server, topic: string) => {
     await subscriber.subscribe(topic)
 
     subscriber.on('message', (channel, message) => {
-        if (channel === 'location-updates') {
+        if (channel === 'location-update') {
             const data = JSON.parse(message)
 
             io.emit('server:location:update', data)

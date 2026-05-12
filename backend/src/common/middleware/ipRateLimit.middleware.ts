@@ -5,6 +5,7 @@ const store: Record<string, {reqCount: number; reqOriginTime: number}> = {}
 
 const ipRateLimiterMiddleware =  (limit: number, windowMS: number) => {
     return (req:Request, res: Response, next: NextFunction) => {
+        console.log("ip rate limiter middleware activited")
         const ip = req.ip as string
         const now = Date.now()
 
@@ -17,13 +18,16 @@ const ipRateLimiterMiddleware =  (limit: number, windowMS: number) => {
 
         if(diff > windowMS){
             store[ip] = {reqCount: 1,reqOriginTime:now}
-            return next
+            return next()
         }
         store[ip].reqCount++
 
         if(store[ip].reqCount > limit){
             return apiRes.toManyReq(res ,"to many request, please try again later")
         }
+    
+
+        next()
     }
 }
 

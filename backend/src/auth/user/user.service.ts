@@ -37,45 +37,12 @@ const register = async ({ username, email, password }: { username: string, email
   );
 };
 
-const verifyEmail = async (token: string) => {
-  if (!token) throw apiErr.invalidToken();
 
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex");
-
-  const user = await mongoUser.findOne({
-    hashedEmailVerTok: hashedToken,
-  });
-
-  if (!user) throw apiErr.invalidToken();
-  if (user.isEmailVerified) throw apiErr.emailAlreadyVerified();
-
-  user.isEmailVerified = true;
-  user.hashedEmailVerTok = "_";
-
-
-  const { accessToken, refreshToken, hashedRefreshToken } =
-    await generateAuthTokens(user._id.toString());
-
-  user.refreshToken = hashedRefreshToken;
-
-  await user.save();
-
-  const { password: _p, ...sanitizedUser } = user.toObject();
-
-  return {
-    user: sanitizedUser,
-    accessToken,
-    refreshToken,
-  };
-};
 
 const login = async ({ email, password }: { email: string; password: string }) => {
-  const user = await mongoUser.findOne({ email });
+  const user = await mongoUser.findOne({ email }).select("+password");
 
-  if (!user) throw apiErr.invalidCredentials();
+  if (!user || !user.password) throw apiErr.invalidCredentials();
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch) throw apiErr.invalidCredentials();
@@ -108,7 +75,7 @@ const login = async ({ email, password }: { email: string; password: string }) =
 };
 
 const getMe = async(userID: any) => {
-  const user = mongoUser.findById(userID)
+  const user = await mongoUser.findById(userID)
   if(!userID) throw apiErr.NotFound("user not found")
 
   return user
@@ -116,4 +83,4 @@ const getMe = async(userID: any) => {
 
 
 
-export { register, verifyEmail, login, getMe }
+export { register, login, getMe }

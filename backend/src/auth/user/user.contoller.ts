@@ -1,5 +1,5 @@
 import apiErr from "../../common/utils/api-error.ts";
-import { register, verifyEmail, login, getMe } from "./user.service.ts";
+import { register, login, getMe } from "./user.service.ts";
 import { Response, Request, NextFunction } from "express"
 import { AuthReq } from "./user.middleware.ts";
 import { apiRes } from "../../common/utils/api-response.ts";
@@ -18,28 +18,6 @@ const registerController = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-const verifyEmailController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { token } = req.query as { token?: string };
-
-    if (!token) {
-      return res.status(400).json({ message: "Token missing" });
-    }
-
-
-    const {accessToken, ...result } = await verifyEmail(token);
-
-      res.cookie("accessToken",  accessToken, {
-        httpOnly:true,
-        secure: false,
-        maxAge: 7 * 24 * 120 * 1000
-    })
-
-    return apiRes.success(res, "email verification successfull: autologin....", result)
-  } catch (err) {
-    next(err);
-  }
-};
 
 const loginController = async (req: Request, res: Response) => {
   try {
@@ -68,4 +46,4 @@ const getMeController = async(req: Request, res: Response) =>{
   return apiRes.success(res, "user data fetched successfully", data)
 }
 
-export { registerController, verifyEmailController, loginController, getMeController }
+export { registerController,  loginController, getMeController }

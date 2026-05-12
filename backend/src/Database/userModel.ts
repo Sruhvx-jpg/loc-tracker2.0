@@ -40,6 +40,9 @@ userSchema.pre("save", function(this: IUser) {
 });
 
 userSchema.methods.comparePassword = function(this: IUser ,plaintext: string) {
+    if (!plaintext || !this.password) {
+        return Promise.resolve(false);
+    }
     return bcrypt.compare(plaintext, this.password)
 };
 

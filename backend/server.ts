@@ -1,5 +1,5 @@
-import 'dotenv/config'  
-import express from "express"
+import 'dotenv/config'
+import express, { NextFunction } from "express"
 import http from "http"
 import path from "path"
 import { Server } from "socket.io"
@@ -11,6 +11,7 @@ import { initValKeySubscriber } from "./src/streaming&fanout-pipeline/valkey/ini
 import connectDB from "./src/Database/db.ts"
 import authRouter from "./src/auth/user/user.routes.ts"
 import cookieParser from "cookie-parser"
+import cors from "cors"
 
 
 
@@ -20,6 +21,10 @@ const main = async () => {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     //---------------------------------------------------------------------------------------------------------------
     const app = express()
+    app.use(cors({
+        origin: "http://localhost:5173",
+        credentials: true
+    }))
     app.use(express.json())
     app.use(cookieParser())
     const server = http.createServer(app)
@@ -29,10 +34,10 @@ const main = async () => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
-  
 
 
-  await connectDB();
+
+    await connectDB();
 
     const io = new Server(server, {
         cors: {
@@ -42,13 +47,13 @@ const main = async () => {
 
     //valkey subscriber
     try {
-        await subscriber.subscribe('location-updates')
-        console.log('[Redis] Subscribed to location-updates')
+        await subscriber.subscribe('location-update')
+        console.log('[Redis] Subscribed to location-update')
     } catch (error) {
         console.error('[Redis] Failed to subscribe:', error)
     }
 
-    initValKeySubscriber(io, 'location-updates')
+    initValKeySubscriber(io, 'location-update')
 
 
     subscriber.on('error', (error) => {
@@ -96,7 +101,7 @@ const main = async () => {
 
 
         socket.on('client:location:update', async (clientCoords) => {
-            console.log("client coordinates recieved: ", {clientCoords})
+            console.log("client coordinates recieved: ", { clientCoords })
             const payload = {
                 ...clientCoords,
                 socketId: socket.id,
@@ -111,7 +116,7 @@ const main = async () => {
                 );
 
                 await publisher.publish(
-                    "location-updates",
+                    "location-update",
                     JSON.stringify(payload)
                 );
             } catch (error) {
@@ -132,7 +137,7 @@ const main = async () => {
                 await publisher.del(`user:${socket.id}`)
 
                 await publisher.publish(
-                    'location-updates',
+                    'location-update',
                     JSON.stringify({
                         userID: socket.id,
                         disconnected: true
@@ -148,11 +153,17 @@ const main = async () => {
     app.use(express.static(path.join(__dirname, "../../frontend/locTracker2.0/dist")))
     app.get('/', (req, res) => res.send('Hello World!'))
     app.use("/auth", authRouter)
+    app.use((err: any, req: any, res: any, next: any) => {
+    console.error(err)
+
+    res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message || "Internal Server Error"
+    })
+})
     //express 
     server.listen(port, () => console.log(`Example app listening on port ${port}!`))
-
-
-    
 }
 
 main()
+
